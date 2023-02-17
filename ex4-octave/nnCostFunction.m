@@ -1,4 +1,4 @@
-function [J grad] = nnCostFunction(nn_params, ...
+function [J, grad] = nnCostFunction(nn_params, ...
                                    input_layer_size, ...
                                    hidden_layer_size, ...
                                    num_labels, ...
@@ -62,23 +62,25 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+a1 = [ones(m, 1), X];
+z2 = a1 * Theta1';
+a2 = [ones(m, 1), sigmoid(z2)];
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
 
+% https://stackoverflow.com/questions/25109239/generate-matrix-of-vectors-from-labels-for-multiclass-classification-vectorized
+y = (1:num_labels) == y;
+J = 1 / m * sum((- y .* log(a3) - (1 - y) .* log(1 - a3)), "all");
+reg = lambda / (2 * m) * (sum((Theta1(:, 2:end) .^2), "all") + sum((Theta2(:, 2:end) .^2), "all"));
+J = J + reg;
 
+delta3 = a3 - y;
+delta2 = (delta3 * Theta2(:, 2:end)) .* sigmoidGradient(z2);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta2_grad = 1 / m * delta3' * a2;
+Theta1_grad = 1 / m * delta2' * a1;
+Theta2_grad = Theta2_grad + [zeros(num_labels, 1), lambda / m * Theta2(:, 2:end)];
+Theta1_grad = Theta1_grad + [zeros(hidden_layer_size, 1), lambda / m * Theta1(:, 2:end)];
 
 % -------------------------------------------------------------
 
